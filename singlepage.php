@@ -1,3 +1,74 @@
+<?php
+$servername = "localhost:3306";
+$username = "root";
+$password = "";
+$dbname = "blog"; 
+
+$conn = new mysqli ($servername, $username, $password, $dbname);
+
+if($conn->connect_error){
+	die("Connection failed: " . $conn->connect_error);
+}
+
+
+$sql = "SELECT id, name, comment, date FROM comments WHERE articleID = 1 and flag = '0' ORDER BY date DESC";
+$result = $conn->query($sql);
+$resultString='';
+
+if ($result->num_rows > 0) {
+	$resultString = '<div class="response"> <h4>Responses</h4>';
+    // output data of each row
+    while($row = $result->fetch_assoc()) {
+        $resultString = $resultString .'<div class="media response-info"> <div class="media-left response-text-left">
+						<img src="images/si.png" class="img-responsive" alt=""></div>
+						<div class="media-body response-text-right">
+							<h4><b>' . $row['name'] . '</b></h4>
+							<p>' . $row['comment'] . '</p>
+							<ul>
+								<li>'. $row['date'] .'</li>
+								<li><div class="myclassname">
+							   <a href="#" class="mylink">Reply</a>
+							   <div class="form">
+							   <br></br>
+							   <h5>Reply</h5>
+							   <div id = error_label></div>
+							   <input type="text" id="sub-comment-name" placeholder="Name" name="myinput" id="myinput"/>
+							   <br></br>
+							   <textarea id="sub-comment-text" placeholder="Your Comment..." maxlength=250 required></textarea>
+							   <input type="hidden" id="commentID" value="'.$row["id"].'"/>
+							   <br></br>
+							   <input type="submit" name="submit" id="submit_btn_subcomment" class="button" value="Submit">
+							   <input type="submit" name="cancel" id="cancel_btn_subcomment" class="button" value="Cancel">
+							   </div>
+							</div></li>
+							</ul>';
+		$sql = "SELECT id, name, comment, date FROM subcomment WHERE parentCommentID = " . $row["id"] ." ORDER BY date ASC";
+		$resultSubComment = $conn->query($sql);
+		if ($resultSubComment->num_rows > 0) {
+			 while($rowSubComment = $resultSubComment->fetch_assoc()) {
+			 	$resultString = $resultString . '<div class="media response-info">
+								<div class="media-left response-text-left">
+										<img src="images/si.png" class="img-responsive" alt="">
+								</div>
+								<div class="media-body response-text-right">
+									<h4><b>' . $rowSubComment['name'] . '</b></h4>
+									<p>' . $rowSubComment["comment"] . '</p>
+									<ul>
+										<li>'. $rowSubComment['date'] .'</li>
+									</ul>		
+								</div>
+								<div class="clearfix"> </div>
+							</div>';
+			 }
+		}
+		$resultString = $resultString . '</div> <div class="clearfix"> </div> </div>';
+    }
+    $resultString = $resultString . '</div>';
+} else {
+    //$resultString = $resultString . "0 results";
+}
+$conn->close();
+?>
 <!--
 Author: W3layouts
 Author URL: http://w3layouts.com
@@ -19,6 +90,88 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 <link href="css/style.css" rel='stylesheet' type='text/css' />	
 <script src="js/jquery-1.11.1.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
+<!-- AJAX scripts -->
+<script src="js/js/jquery-1.6.2.min.js" type="text/javascript"></script> 
+<script src="js/js/jquery-ui-1.8.16.custom.min.js" type="text/javascript"></script>
+<!-- actual scripts -->
+<script>
+  $(function() {
+    $("#submit_btn").click(function() {
+      // validate and process form here
+      if($("#main-comment-name").val() != "" && $("#main-comment-text").val() != ""){
+      	  $.ajax({
+      		type: "POST",
+			url: 'processComment.php', 
+			data: {commentName: $( "#main-comment-name" ).val(),
+				   articleID: 1,
+				   actualCommentText: $("#main-comment-text").val()},
+			success: function(data){
+				$('#main-comment-name').val('');
+				$('#main-comment-text').val('');
+				$('#error_label').html('');
+				$.ajax({
+				url: 'displayComments.php',
+				success: function(dataReturned){
+					$('#responsesReturned').html(dataReturned);
+				}
+			});
+			}
+		});
+      }else{
+      	 $('#error_label').html('<label class="error" for="name" id="error">Please provide a name and a comment</label>');
+      }
+    });
+  });
+</script>
+<script>
+$(function(){
+   $('.myclassname .mylink').click(function(){
+      $(this).hide();
+      $('.myclassname .form').show();
+      return false;
+   });
+});
+</script>
+<script>
+$(function(){
+   $('#cancel_btn_subcomment').click(function(){
+      $('.myclassname .form').hide();
+	  $('.myclassname .mylink').show()
+      return true;
+   });
+});
+</script>
+<script>
+$(function() {
+    $("#submit_btn_subcomment").click(function() {
+      // validate and process form here
+      if($("#sub-comment-name").val() != "" && $("#sub-comment-text").val() != ""){
+      	  $.ajax({
+      		type: "POST",
+			url: 'processSubComments.php', 
+			data: {commentName: $( "#sub-comment-name" ).val(),
+				   commentID: $("#commentID").val(),
+				   actualCommentText: $("#sub-comment-text").val()},
+			success: function(data){
+				$('#sub-comment-name').val('');
+				$('#sub-comment-text').val('');
+				$('#error_label').html('');
+				$('.myclassname .form').hide();
+				$('.myclassname .mylink').show()
+				/*$.ajax({
+				url: 'displayComments.php',
+				success: function(dataReturned){
+					$('#responsesReturned').html(dataReturned);
+				}
+			});*/
+			}
+		});
+      }else{
+      	 $('#error_label').html('<label class="error" for="name" id="error">Please provide a name and a comment</label>');
+      }
+    });
+  });
+</script>
 <!-- animation-effect -->
 <link href="css/animate.min.css" rel="stylesheet"> 
 <script src="js/wow.min.js"></script>
@@ -124,9 +277,8 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 			      <p>On Sept 10 <a class="span_link" href="#"><span class="glyphicon glyphicon-comment"></span>0 </a><a class="span_link" href="#"><span class="glyphicon glyphicon-eye-open"></span>0</a></p>
 				</div>
 			 </div>
-			  
-
-			 <div class="response">
+			 <div id = "responsesReturned"><?php echo $resultString?></div> 
+			 <!--<div class="response">
 					<h4>Responses</h4>
 					<div class="media response-info">
 						<div class="media-left response-text-left">
@@ -138,7 +290,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit,There are many variations of passages of Lorem Ipsum available, 
 								sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
 							<ul>
-								<li>Jun 21, 2016</li>
+								<li>Jun 21, 2016</liho
 								<li><a href="#">Reply</a></li>
 							</ul>
 							<div class="media response-info">
@@ -191,115 +343,19 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 							</div>
 						</div>
 						<div class="clearfix"> </div>
-					</div>
-				</div>	
-				<div class="coment-form" method="post">
-					<h4>Leave your comment</h4>
-					<form action="#" method="post">
-						<input type="text" value="Name " name="name" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'Name';}" required="">
-						<textarea onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'Your Comment...';}" required="">Your Comment...</textarea>
-						<input type="submit" value="Submit Comment">
-					</form>
+					</div> -->
+				
+				
+				<div class="coment-form" id="main-comment-section">
+					<h4>Leave your comment for the current blog post</h4>
+						<div id = error_label></div>
+						<input type="text" id="main-comment-name" placeholder="Name" name="name" required>
+						<textarea id="main-comment-text" placeholder="Your Comment..." maxlength=250 required></textarea>
+						<input type="submit" name="submit" id="submit_btn" class="button" value="Submit Comment">
 				</div>	
 				<div class="clearfix"></div>
 			</div>
 		</div>
-		<!-- technology-right -->
-		<div class="col-md-3 technology-right">
-				
-				
-				<div class="blo-top1">
-							
-					<div class="tech-btm">
-					<div class="search-1">
-							<form action="#" method="post">
-								<input type="search" name="Search" value="Search" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'Search';}" required="">
-								<input type="submit" value=" ">
-							</form>
-						</div>
-					<h4>Popular Posts </h4>
-						<div class="blog-grids">
-							<div class="blog-grid-left">
-								<a href="singlepage.html"><img src="images/t2.jpg" class="img-responsive" alt=""></a>
-							</div>
-							<div class="blog-grid-right">
-								
-								<h5><a href="singlepage.html">Pellentesque dui Maecenas male</a> </h5>
-							</div>
-							<div class="clearfix"> </div>
-						</div>
-						<div class="blog-grids">
-							<div class="blog-grid-left">
-								<a href="singlepage.html"><img src="images/m2.jpg" class="img-responsive" alt=""></a>
-							</div>
-							<div class="blog-grid-right">
-								
-								<h5><a href="singlepage.html">Pellentesque dui Maecenas male</a> </h5>
-							</div>
-							<div class="clearfix"> </div>
-						</div>
-						<div class="blog-grids">
-							<div class="blog-grid-left">
-								<a href="singlepage.html"><img src="images/f2.jpg" class="img-responsive" alt=""></a>
-							</div>
-							<div class="blog-grid-right">
-								
-								<h5><a href="singlepage.html">Pellentesque dui Maecenas male</a> </h5>
-							</div>
-							<div class="clearfix"> </div>
-						</div>
-						<div class="blog-grids">
-							<div class="blog-grid-left">
-								<a href="singlepage.html"><img src="images/t3.jpg" class="img-responsive" alt=""></a>
-							</div>
-							<div class="blog-grid-right">
-								
-								<h5><a href="singlepage.html">Pellentesque dui Maecenas male</a> </h5>
-							</div>
-							<div class="clearfix"> </div>
-						</div>
-						<div class="blog-grids">
-							<div class="blog-grid-left">
-								<a href="singlepage.html"><img src="images/m3.jpg" class="img-responsive" alt=""></a>
-							</div>
-							<div class="blog-grid-right">
-								
-								<h5><a href="singlepage.html">Pellentesque dui Maecenas male</a> </h5>
-							</div>
-							<div class="clearfix"> </div>
-						</div>
-						<div class="insta">
-					<h4>Instagram</h4>
-						<ul>
-							
-							<li><a href="singlepage.html"><img src="images/t1.jpg" class="img-responsive" alt=""></a></li>
-							<li><a href="singlepage.html"><img src="images/m1.jpg" class="img-responsive" alt=""></a></li>
-							<li><a href="singlepage.html"><img src="images/f1.jpg" class="img-responsive" alt=""></a></li>
-							<li><a href="singlepage.html"><img src="images/m2.jpg" class="img-responsive" alt=""></a></li>
-							<li><a href="singlepage.html"><img src="images/f2.jpg" class="img-responsive" alt=""></a></li>
-							<li><a href="singlepage.html"><img src="images/t2.jpg" class="img-responsive" alt=""></a></li>
-							<li><a href="singlepage.html"><img src="images/f3.jpg" class="img-responsive" alt=""></a></li>
-							<li><a href="singlepage.html"><img src="images/t3.jpg" class="img-responsive" alt=""></a></li>
-							<li><a href="singlepage.html"><img src="images/m3.jpg" class="img-responsive" alt=""></a></li>
-						</ul>
-					</div>
-					
-					<p>Lorem ipsum ex vix illud nonummy, novum tation et his. At vix scripta patrioque scribentur, at pro</p>
-					<div class="twt">
-					
-						<iframe id="twitter-widget-0" scrolling="no" frameborder="0" allowtransparency="true" class="twitter-hashtag-button twitter-hashtag-button-rendered twitter-tweet-button" title="Twitter Tweet Button" src="https://platform.twitter.com/widgets/tweet_button.b7de008f493a5185d8df1aedd62d77c6.en.html#button_hashtag=TwitterStories&amp;dnt=false&amp;id=twitter-widget-0&amp;lang=en&amp;original_referer=https%3A%2F%2Fp.w3layouts.com%2Fdemos%2Fduplex%2Fweb%2F&amp;size=l&amp;time=1467721486626&amp;type=hashtag" style="position: static; visibility: visible; width: 166px; height: 28px;" data-hashtag="TwitterStories"></iframe>
-						<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
-					</div>
-					</div>
-					
-					
-					
-				</div>
-				
-			
-		</div>
-		<div class="clearfix"></div>
-		<!-- technology-right -->
 	</div>
 </div>
 <div class="footer">

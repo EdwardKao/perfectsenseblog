@@ -1,3 +1,24 @@
+<!--<?php 
+/*$servername = "localhost:3306";
+$username = "root";
+$password = "";
+$dbname = "blog"; 
+
+$conn = new mysqli ($servername, $username, $password, $dbname);
+
+if($conn->connect_error){
+	die("Connection failed: " . $conn->connect_error);
+}
+
+$sql = "SELECT name, comment, date, articleID, flag FROM comments WHERE articleID = 1 and flag = 1"
+$result = $conn->query($sql);
+$row = mysqli_fetch_assoc($result); */
+
+
+
+
+?> -->
+
 <!--
 Author: W3layouts
 Author URL: http://w3layouts.com
