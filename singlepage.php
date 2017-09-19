@@ -27,18 +27,18 @@ if ($result->num_rows > 0) {
 							<ul>
 								<li>'. $row['date'] .'</li>
 								<li><div class="myclassname">
-							   <a href="#" class="mylink">Reply</a>
+							   <a href="" class="mylink">Reply</a>
 							   <div class="form">
 							   <br></br>
 							   <h5>Reply</h5>
-							   <div id = error_label></div>
+							   <div id = error_label_subcomment></div>
 							   <input type="text" id="sub-comment-name" placeholder="Name" name="myinput" id="myinput"/>
 							   <br></br>
 							   <textarea id="sub-comment-text" placeholder="Your Comment..." maxlength=250 required></textarea>
 							   <input type="hidden" id="commentID" value="'.$row["id"].'"/>
 							   <br></br>
-							   <input type="submit" name="submit" id="submit_btn_subcomment" class="button" value="Submit">
-							   <input type="submit" name="cancel" id="cancel_btn_subcomment" class="button" value="Cancel">
+							   <input type="submit" name="submit" id="submit_btn_subcomment" class="sub_comment_button" value="Submit">
+							   <input type="submit" name="cancel" id="cancel_btn_subcomment" class="cancel_button" value="Cancel">
 							   </div>
 							</div></li>
 							</ul>';
@@ -61,7 +61,7 @@ if ($result->num_rows > 0) {
 							</div>';
 			 }
 		}
-		$resultString = $resultString . '</div> <div class="clearfix"> </div> </div>';
+		$resultString = $resultString . '</div> <div class="clearfix"> </div> </div><hr>';
     }
     $resultString = $resultString . '</div>';
 } else {
@@ -91,11 +91,11 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 <script src="js/jquery-1.11.1.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
 <!-- AJAX scripts -->
-<script src="js/js/jquery-1.6.2.min.js" type="text/javascript"></script> 
-<script src="js/js/jquery-ui-1.8.16.custom.min.js" type="text/javascript"></script>
+<script src="js/jquery-1.6.2.min.js" type="text/javascript"></script> 
+<script src="js/jquery-ui-1.8.16.custom.min.js" type="text/javascript"></script>
 <!-- actual scripts -->
 <script>
-  $(function() {
+ $(function() {
     $("#submit_btn").click(function() {
       // validate and process form here
       if($("#main-comment-name").val() != "" && $("#main-comment-text").val() != ""){
@@ -123,55 +123,67 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
     });
   });
 </script>
+
+<script>
+    $( document ).ready(function() {
+        console.log( "document loaded" );
+    });
+</script>
+
 <script>
 $(function(){
    $('.myclassname .mylink').click(function(){
       $(this).hide();
-      $('.myclassname .form').show();
+      $(this).siblings('.myclassname .form').show();
       return false;
    });
 });
 </script>
+
 <script>
-$(function(){
-   $('#cancel_btn_subcomment').click(function(){
-      $('.myclassname .form').hide();
-	  $('.myclassname .mylink').show()
+$(function() {
+   $('.myclassname .cancel_button').click(function(){
+	  $('.myclassname .form').hide();
+	  $('.myclassname .mylink').show();
       return true;
    });
 });
 </script>
+
 <script>
 $(function() {
-    $("#submit_btn_subcomment").click(function() {
+    $(".myclassname .sub_comment_button").click(function() {
+    console.log("hey");
       // validate and process form here
-      if($("#sub-comment-name").val() != "" && $("#sub-comment-text").val() != ""){
+      if($(this).siblings("#sub-comment-name").val() != "" && $(this).siblings("#sub-comment-text").val() != ""){
       	  $.ajax({
       		type: "POST",
 			url: 'processSubComments.php', 
-			data: {commentName: $( "#sub-comment-name" ).val(),
-				   commentID: $("#commentID").val(),
-				   actualCommentText: $("#sub-comment-text").val()},
+			data: {commentName: $(this).siblings("#sub-comment-name").val(),
+				   commentID: $(this).siblings("#commentID").val(),
+				   actualCommentText: $(this).siblings("#sub-comment-text").val()},
 			success: function(data){
 				$('#sub-comment-name').val('');
 				$('#sub-comment-text').val('');
 				$('#error_label').html('');
 				$('.myclassname .form').hide();
 				$('.myclassname .mylink').show()
-				/*$.ajax({
+				$.ajax({
 				url: 'displayComments.php',
 				success: function(dataReturned){
 					$('#responsesReturned').html(dataReturned);
 				}
-			});*/
+			});
 			}
 		});
       }else{
-      	 $('#error_label').html('<label class="error" for="name" id="error">Please provide a name and a comment</label>');
+      	 $(this).siblings('#error_label_subcomment').html('<label class="error" for="name" id="error">Please provide a name and a comment</label>');
       }
     });
   });
 </script>
+
+
 <!-- animation-effect -->
 <link href="css/animate.min.css" rel="stylesheet"> 
 <script src="js/wow.min.js"></script>
@@ -244,7 +256,7 @@ $(function() {
 	<div class="header-bottom">
 		<div class="container">
 			<div class="logo">
-				<h1><a href="index.html">CODING BLOG</a></h1>
+				<h1><a href="index.php">CODING BLOG</a></h1>
 				<p><label class="of"></label>LET'S MAKE A BLOG POST<label class="on"></label></p>
 			</div>
 		</div>
@@ -277,7 +289,15 @@ $(function() {
 			      <p>On Sept 10 <a class="span_link" href="#"><span class="glyphicon glyphicon-comment"></span>0 </a><a class="span_link" href="#"><span class="glyphicon glyphicon-eye-open"></span>0</a></p>
 				</div>
 			 </div>
-			 <div id = "responsesReturned"><?php echo $resultString?></div> 
+			 	<div class="coment-form" id="main-comment-section">
+					<h4>Leave your comment for the current blog post</h4>
+						<div id = error_label></div>
+						<input type="text" id="main-comment-name" placeholder="Name" name="name" required>
+						<textarea id="main-comment-text" placeholder="Your Comment..." maxlength=250 required></textarea>
+						<input type="submit" name="submit" id="submit_btn" class="button" value="Submit Comment">
+				</div>	
+				<div class="clearfix"></div>
+			 <div id = "responsesReturned"><?php echo $resultString?></div>
 			 <!--<div class="response">
 					<h4>Responses</h4>
 					<div class="media response-info">
@@ -344,16 +364,6 @@ $(function() {
 						</div>
 						<div class="clearfix"> </div>
 					</div> -->
-				
-				
-				<div class="coment-form" id="main-comment-section">
-					<h4>Leave your comment for the current blog post</h4>
-						<div id = error_label></div>
-						<input type="text" id="main-comment-name" placeholder="Name" name="name" required>
-						<textarea id="main-comment-text" placeholder="Your Comment..." maxlength=250 required></textarea>
-						<input type="submit" name="submit" id="submit_btn" class="button" value="Submit Comment">
-				</div>	
-				<div class="clearfix"></div>
 			</div>
 		</div>
 	</div>
