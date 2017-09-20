@@ -10,22 +10,27 @@ if($conn->connect_error){
 	die("Connection failed: " . $conn->connect_error);
 }
 
-
-$sql = "SELECT id, name, comment, date FROM comments WHERE articleID = 1 and flag = '0' ORDER BY date DESC";
+date_default_timezone_set('EST');
+$sql = "SELECT id, name, comment, date FROM comments WHERE articleID = 1 ORDER BY date DESC";
 $result = $conn->query($sql);
 $resultString='';
-
 if ($result->num_rows > 0) {
-	$resultString = '<div class="response"> <h4>Responses</h4>';
+	$resultString = '<div class="response"> <h4>Responses (' . $result->num_rows. ')</h4> <h4>Sort by <select id="ddlViewBy">
+  <option value="1">newest</option>
+  <option value="2">oldest</option>
+</select></h4>
+	';
     // output data of each row
     while($row = $result->fetch_assoc()) {
+    	$phpdate = strtotime( $row['date'] );
+		$mysqldate = date( 'd M, Y g:i:s A', $phpdate );
         $resultString = $resultString .'<div class="media response-info"> <div class="media-left response-text-left">
 						<img src="images/si.png" class="img-responsive" alt=""></div>
 						<div class="media-body response-text-right">
 							<h4><b>' . $row['name'] . '</b></h4>
 							<p>' . $row['comment'] . '</p>
 							<ul>
-								<li>'. $row['date'] .'</li>
+								<li>'. $mysqldate .'</li>
 								<li><div class="myclassname">
 							   <a href="" class="mylink">Reply</a>
 							   <div class="form">
@@ -46,6 +51,8 @@ if ($result->num_rows > 0) {
 		$resultSubComment = $conn->query($sql);
 		if ($resultSubComment->num_rows > 0) {
 			 while($rowSubComment = $resultSubComment->fetch_assoc()) {
+			 	$subphpdate = strtotime( $rowSubComment['date'] );
+				$submysqldate = date( 'd M, Y g:i:s A', $subphpdate );
 			 	$resultString = $resultString . '<div class="media response-info">
 								<div class="media-left response-text-left">
 										<img src="images/si.png" class="img-responsive" alt="">
@@ -54,7 +61,7 @@ if ($result->num_rows > 0) {
 									<h4><b>' . $rowSubComment['name'] . '</b></h4>
 									<p>' . $rowSubComment["comment"] . '</p>
 									<ul>
-										<li>'. $rowSubComment['date'] .'</li>
+										<li>'. $submysqldate .'</li>
 									</ul>		
 								</div>
 								<div class="clearfix"> </div>
@@ -78,7 +85,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 <!DOCTYPE HTML>
 <html>
 <head>
-<title>Coding Blog | Home :: w3layouts</title>
+<title>Coding Blog</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="keywords" content="Style Blog Responsive web template, Bootstrap Web Templates, Flat Web Templates, Android Compatible web template, 
@@ -98,11 +105,19 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
  $(function() {
     $("#submit_btn").click(function() {
       // validate and process form here
+      var sortOrderNumber;
+      if(document.getElementById('#ddlViewBy')){
+      	sortOrderNumber =  $("#ddlViewBy :selected").val();
+      }else{
+      	sortOrderNumber = 1;
+      }
+      console.log("sortOrderNumber: " + sortOrderNumber);
       if($("#main-comment-name").val() != "" && $("#main-comment-text").val() != ""){
       	  $.ajax({
       		type: "POST",
 			url: 'processComment.php', 
 			data: {commentName: $( "#main-comment-name" ).val(),
+				   sortOrder: sortOrderNumber,
 				   articleID: 1,
 				   actualCommentText: $("#main-comment-text").val()},
 			success: function(data){
@@ -110,6 +125,9 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 				$('#main-comment-text').val('');
 				$('#error_label').html('');
 				$.ajax({
+				type: "POST",
+				data: {sortOrder: sortOrderNumber,
+				   articleID: 1},
 				url: 'displayComments.php',
 				success: function(dataReturned){
 					$('#responsesReturned').html(dataReturned);
@@ -123,13 +141,22 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
     });
   });
 </script>
-
 <script>
-    $( document ).ready(function() {
-        console.log( "document loaded" );
-    });
+$(function(){
+     $('#ddlViewBy').change(function(){
+     	//console.log( $("#ddlViewBy :selected").val());
+     	$.ajax({
+     		type: 'POST',
+			url: 'displayComments.php', 
+			data: {sortOrder: $("#ddlViewBy :selected").val(),
+				   articleID: 1},
+			success: function(dataReturned){
+				$('#responsesReturned').html(dataReturned);
+			}
+		});
+   });
+});
 </script>
-
 <script>
 $(function(){
    $('.myclassname .mylink').click(function(){
@@ -153,7 +180,6 @@ $(function() {
 <script>
 $(function() {
     $(".myclassname .sub_comment_button").click(function() {
-    console.log("hey");
       // validate and process form here
       if($(this).siblings("#sub-comment-name").val() != "" && $(this).siblings("#sub-comment-text").val() != ""){
       	  $.ajax({
@@ -163,12 +189,15 @@ $(function() {
 				   commentID: $(this).siblings("#commentID").val(),
 				   actualCommentText: $(this).siblings("#sub-comment-text").val()},
 			success: function(data){
-				$('#sub-comment-name').val('');
-				$('#sub-comment-text').val('');
-				$('#error_label').html('');
+				//$(this).siblings('#sub-comment-name').val('');
+				//$(this).siblings('#sub-comment-text').val('');
+				//$(this).siblings('#error_label_subcomment').html('');
 				$('.myclassname .form').hide();
 				$('.myclassname .mylink').show()
 				$.ajax({
+				type: "POST",
+				data: {sortOrder: $("#ddlViewBy :selected").val(),
+				   articleID: 1},
 				url: 'displayComments.php',
 				success: function(dataReturned){
 					$('#responsesReturned').html(dataReturned);
@@ -228,9 +257,9 @@ $(function() {
 							<li class="active act"><a href="index.php">Home</a></li>
 							<li><a href="about.php">About</a></li>
 							<li><a href="coding.php">Coding</a></li>
-							<!-- <li><a href="features.html">Features</a></li>
-							<li><a href="fashion.html">Fashion</a></li>
-							<li><a href="music.html">Music</a></li>
+							<li><a href="signup.php">SignUp</a></li>
+							<li><a href="login.php">Login</a></li>
+							<!--<li><a href="music.html">Music</a></li>
 							<li><a href="codes.html">Codes</a></li>
 							<li><a href="contact.html">Contact</a></li> -->
 						</ul>
@@ -298,72 +327,6 @@ $(function() {
 				</div>	
 				<div class="clearfix"></div>
 			 <div id = "responsesReturned"><?php echo $resultString?></div>
-			 <!--<div class="response">
-					<h4>Responses</h4>
-					<div class="media response-info">
-						<div class="media-left response-text-left">
-							<a href="#">
-								<img src="images/sin1.jpg" class="img-responsive" alt="">
-							</a>
-						</div>
-						<div class="media-body response-text-right">
-							<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit,There are many variations of passages of Lorem Ipsum available, 
-								sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-							<ul>
-								<li>Jun 21, 2016</liho
-								<li><a href="#">Reply</a></li>
-							</ul>
-							<div class="media response-info">
-								<div class="media-left response-text-left">
-									<a href="#">
-										<img src="images/sin2.jpg" class="img-responsive" alt="">
-									</a>
-								</div>
-								<div class="media-body response-text-right">
-									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit,There are many variations of passages of Lorem Ipsum available, 
-										sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-									<ul>
-										<li>July 17, 2016</li>
-										<li><a href="#">Reply</a></li>
-									</ul>		
-								</div>
-								<div class="clearfix"> </div>
-							</div>
-						</div>
-						<div class="clearfix"> </div>
-					</div>
-					<div class="media response-info">
-						<div class="media-left response-text-left">
-							<a href="#">
-								<img src="images/sin1.jpg" class="img-responsive" alt="">
-							</a>
-						</div>
-						<div class="media-body response-text-right">
-							<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit,There are many variations of passages of Lorem Ipsum available, 
-								sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-							<ul>
-								<li>Jul 22, 2016</li>
-								<li><a href="#">Reply</a></li>
-							</ul>
-							<div class="media response-info">
-								<div class="media-left response-text-left">
-									<a href="#">
-										<img src="images/sin2.jpg" class="img-responsive" alt="">
-									</a>
-								</div>
-								<div class="media-body response-text-right">
-									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit,There are many variations of passages of Lorem Ipsum available, 
-										sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-									<ul>
-										<li>Aug 01, 2016</li>
-										<li><a href="#">Reply</a></li>
-									</ul>		
-								</div>
-								<div class="clearfix"> </div>
-							</div>
-						</div>
-						<div class="clearfix"> </div>
-					</div> -->
 			</div>
 		</div>
 	</div>

@@ -19,24 +19,43 @@ $(function() {
 });
 </script>
 <script>
+$(function(){
+     $('#ddlViewBy').change(function(){
+     	//console.log( $("#ddlViewBy :selected").val());
+     	$.ajax({
+     		type: 'POST',
+			url: 'displayComments.php', 
+			data: {sortOrder: $("#ddlViewBy :selected").val(),
+				   articleID: 1},
+			success: function(dataReturned){
+				$('#responsesReturned').html(dataReturned);
+			}
+		});
+   });
+});
+</script>
+<script>
 $(function() {
     $(".myclassname .sub_comment_button").click(function() {
-    console.log("hey");
+    //console.log("hey");
       // validate and process form here
       if($(this).siblings("#sub-comment-name").val() != "" && $(this).siblings("#sub-comment-text").val() != ""){
       	  $.ajax({
       		type: "POST",
 			url: 'processSubComments.php', 
-			data: {commentName: $(this).siblings( "#sub-comment-name" ).val(),
+			data: {commentName: $(this).siblings("#sub-comment-name").val(),
 				   commentID: $(this).siblings("#commentID").val(),
 				   actualCommentText: $(this).siblings("#sub-comment-text").val()},
 			success: function(data){
-				$('#sub-comment-name').val('');
-				$('#sub-comment-text').val('');
-				$('#error_label').html('');
+				//$('#sub-comment-name').val('');
+				//$('#sub-comment-text').val('');
+				//$('#error_label').html('');
 				$('.myclassname .form').hide();
 				$('.myclassname .mylink').show()
 				$.ajax({
+				type: "POST",
+				data: {sortOrder: $("#ddlViewBy :selected").val(),
+				   articleID: 1},
 				url: 'displayComments.php',
 				success: function(dataReturned){
 					$('#responsesReturned').html(dataReturned);
@@ -52,6 +71,9 @@ $(function() {
 </script>
 
 
+
+
+
 <?php
 $servername = "localhost:3306";
 $username = "root";
@@ -64,20 +86,38 @@ if($conn->connect_error){
 	die("Connection failed: " . $conn->connect_error);
 }
 
+$articleID = $_POST["articleID"]; 
+$sortOrder="";
+if($_POST["sortOrder"] == 1){
+	$sortOrder = "DESC";
+}else{
+	$sortOrder = "ASC";
+}
 
-$sql = "SELECT id, name, comment, date FROM comments WHERE articleID = 1 and flag = '0' ORDER BY date DESC";
+$sql = "SELECT id, name, comment, date FROM comments WHERE articleID = ". $articleID . " ORDER BY date " . $sortOrder ;
 $result = $conn->query($sql);
+
+date_default_timezone_set('EST');
+
 if ($result->num_rows > 0) {
-	echo '<div class="response"> <h4>Responses</h4>';
+	echo '<div class="response"> <h4>Responses (' . $result->num_rows. ')</h4><h4>Sort by <select id="ddlViewBy">';
+	if($_POST["sortOrder"] == 1){
+		echo '<option value="1" selected="selected">newest</option><option value="2" >oldest</option>;
+</select></h4>';
+	}else{
+		echo '<option value="1">newest</option><option value="2" selected="selected">oldest</option></select></h4>';
+	}
     // output data of each row
     while($row = $result->fetch_assoc()) {
+    	$phpdate = strtotime( $row['date'] );
+		$mysqldate = date( 'd M, Y g:i:s A', $phpdate );
         echo '<div class="media response-info"> <div class="media-left response-text-left">
 						<img src="images/si.png" class="img-responsive" alt=""></div>
 						<div class="media-body response-text-right">
 							<h4><b>' . $row['name'] . '</b></h4>
 							<p>' . $row['comment'] . '</p>
 							<ul>
-								<li>'. $row['date'] .'</li>
+								<li>'. $mysqldate .'</li>
 								<li><div class="myclassname">
 							   <a href="" class="mylink">Reply</a>
 							   <div class="form">
@@ -98,6 +138,8 @@ if ($result->num_rows > 0) {
 		$resultSubComment = $conn->query($sql);
 		if ($resultSubComment->num_rows > 0) {
 			 while($rowSubComment = $resultSubComment->fetch_assoc()) {
+			 	$subphpdate = strtotime( $rowSubComment['date'] );
+				$submysqldate = date( 'd M, Y g:i:s A', $subphpdate );
 			 	echo '<div class="media response-info">
 								<div class="media-left response-text-left">
 										<img src="images/si.png" class="img-responsive" alt="">
@@ -106,7 +148,7 @@ if ($result->num_rows > 0) {
 									<h4><b>' . $rowSubComment['name'] . '</b></h4>
 									<p>' . $rowSubComment["comment"] . '</p>
 									<ul>
-										<li>'. $rowSubComment['date'] .'</li>
+										<li>'. $submysqldate .'</li>
 									</ul>		
 								</div>
 								<div class="clearfix"> </div>
