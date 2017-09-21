@@ -1,3 +1,7 @@
+<?php
+session_start();
+?>
+
 <script src="js/jquery-1.6.2.min.js" type="text/javascript"></script> 
 <script src="js/jquery-ui-1.8.16.custom.min.js" type="text/javascript"></script>
 <script>
@@ -37,7 +41,6 @@ $(function(){
 <script>
 $(function() {
     $(".myclassname .sub_comment_button").click(function() {
-    //console.log("hey");
       // validate and process form here
       if($(this).siblings("#sub-comment-name").val() != "" && $(this).siblings("#sub-comment-text").val() != ""){
       	  $.ajax({
@@ -45,11 +48,12 @@ $(function() {
 			url: 'processSubComments.php', 
 			data: {commentName: $(this).siblings("#sub-comment-name").val(),
 				   commentID: $(this).siblings("#commentID").val(),
+				   picturepath: $(this).siblings("#sub-comment-picturepath").val(),
 				   actualCommentText: $(this).siblings("#sub-comment-text").val()},
 			success: function(data){
-				//$('#sub-comment-name').val('');
-				//$('#sub-comment-text').val('');
-				//$('#error_label').html('');
+				//$(this).siblings('#sub-comment-name').val('');
+				//$(this).siblings('#sub-comment-text').val('');
+				//$(this).siblings('#error_label_subcomment').html('');
 				$('.myclassname .form').hide();
 				$('.myclassname .mylink').show()
 				$.ajax({
@@ -64,7 +68,7 @@ $(function() {
 			}
 		});
       }else{
-      	 $(this).siblings('#error_label_subcomment').html('<label class="error" for="name" id="error">Please provide a name and a comment</label>');
+      	 $(this).siblings('#error_label_subcomment').html('<label class="error" for="name" id="error">Please provide a comment</label>');
       }
     });
   });
@@ -94,7 +98,7 @@ if($_POST["sortOrder"] == 1){
 	$sortOrder = "ASC";
 }
 
-$sql = "SELECT id, name, comment, date FROM comments WHERE articleID = ". $articleID . " ORDER BY date " . $sortOrder ;
+$sql = "SELECT id, name, comment, picturepath, date FROM comments WHERE articleID = ". $articleID . " ORDER BY date " . $sortOrder ;
 $result = $conn->query($sql);
 
 date_default_timezone_set('EST');
@@ -111,8 +115,8 @@ if ($result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
     	$phpdate = strtotime( $row['date'] );
 		$mysqldate = date( 'd M, Y g:i:s A', $phpdate );
-        echo '<div class="media response-info"> <div class="media-left response-text-left">
-						<img src="images/perfectsense80x80.png" class="img-responsive" alt=""></div>
+        echo'<div class="media response-info"> <div class="media-left response-text-left">
+						<img src="' . $row['picturepath'] .' " class="img-responsive" alt=""></div>
 						<div class="media-body response-text-right">
 							<h4><b>' . $row['name'] . '</b></h4>
 							<p>' . $row['comment'] . '</p>
@@ -124,7 +128,8 @@ if ($result->num_rows > 0) {
 							   <br></br>
 							   <h5>Reply</h5>
 							   <div id = error_label_subcomment></div>
-							   <input type="text" id="sub-comment-name" placeholder="Name" name="myinput" id="myinput"/>
+							   <input type="hidden" id="sub-comment-name" value="' . $_SESSION["user"]. '" />
+							    <input type="hidden" id="sub-comment-picturepath" value="'. $_SESSION["picturepath"]. '"/>
 							   <br></br>
 							   <textarea id="sub-comment-text" placeholder="Your Comment..." maxlength=250 required></textarea>
 							   <input type="hidden" id="commentID" value="'.$row["id"].'"/>
@@ -134,7 +139,7 @@ if ($result->num_rows > 0) {
 							   </div>
 							</div></li>
 							</ul>';
-		$sql = "SELECT id, name, comment, date FROM subcomment WHERE parentCommentID = " . $row["id"] ." ORDER BY date ASC";
+		$sql = "SELECT id, name, comment, picturepath, date FROM subcomment WHERE parentCommentID = " . $row["id"] ." ORDER BY date ASC";
 		$resultSubComment = $conn->query($sql);
 		if ($resultSubComment->num_rows > 0) {
 			 while($rowSubComment = $resultSubComment->fetch_assoc()) {
@@ -142,7 +147,7 @@ if ($result->num_rows > 0) {
 				$submysqldate = date( 'd M, Y g:i:s A', $subphpdate );
 			 	echo '<div class="media response-info">
 								<div class="media-left response-text-left">
-										<img src="images/perfectsense80x80.png" class="img-responsive" alt="">
+										<img src="' . $rowSubComment['picturepath'] .'" class="img-responsive" alt="">
 								</div>
 								<div class="media-body response-text-right">
 									<h4><b>' . $rowSubComment['name'] . '</b></h4>

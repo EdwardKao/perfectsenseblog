@@ -21,11 +21,12 @@ if($bool == 1){
 $articleID = $_POST["articleID"];
 $name = $_POST["commentName"];
 $comment = $_POST["actualCommentText"];
+$picturepath = $_POST["picturepath"];
 
 
-$stmt = $conn->prepare("INSERT INTO comments (name, comment, date, articleID) VALUES (?,?,?,?)");
+$stmt = $conn->prepare("INSERT INTO comments (name, comment, date, articleID, picturepath) VALUES (?,?,?,?,?)");
 //$stmt->bind_param("s,s,s,i,i", $_POST['commentName'], $_POST['actualCommentText'], $commentTime, $articleID, $flag);
-$stmt->bind_param("sssi", $name, $comment, $commentTime, $articleID);
+$stmt->bind_param("sssis", $name, $comment, $commentTime, $articleID, $picturepath);
 
 $stmt->execute();
 

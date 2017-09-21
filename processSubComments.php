@@ -21,12 +21,12 @@ if($bool == 1){
 $parentcommentID = $_POST["commentID"];
 $name = $_POST["commentName"];
 $comment = $_POST["actualCommentText"];
+$picturepath = $_POST["picturepath"];
 
 
-
-$stmt = $conn->prepare("INSERT INTO subcomment (name, comment, parentcommentID, date) VALUES (?,?,?,?)");
+$stmt = $conn->prepare("INSERT INTO subcomment (name, comment, parentcommentID, date, picturepath) VALUES (?,?,?,?,?)");
 //$stmt->bind_param("s,s,s,i,i", $_POST['commentName'], $_POST['actualCommentText'], $commentTime, $articleID, $flag);
-$stmt->bind_param("ssis", $name, $comment, $parentcommentID, $commentTime);
+$stmt->bind_param("ssiss", $name, $comment, $parentcommentID, $commentTime, $picturepath);
 
 $stmt->execute();
 

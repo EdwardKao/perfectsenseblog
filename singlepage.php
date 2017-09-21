@@ -1,5 +1,10 @@
 <?php
 session_start();
+if(!isset($_SESSION["user"])){
+	header('Location: login.php');
+	exit;
+}
+
 $servername = "localhost:3306";
 $username = "root";
 $password = "";
@@ -13,7 +18,7 @@ if($conn->connect_error){
 
 date_default_timezone_set('EST');
 
-$sql = "SELECT id, name, comment, date FROM comments WHERE articleID = 1 ORDER BY date DESC";
+$sql = "SELECT id, name, comment, picturepath, date FROM comments WHERE articleID = 1 ORDER BY date DESC";
 $result = $conn->query($sql);
 $resultString='';
 if ($result->num_rows > 0) {
@@ -27,7 +32,7 @@ if ($result->num_rows > 0) {
     	$phpdate = strtotime( $row['date'] );
 		$mysqldate = date( 'd M, Y g:i:s A', $phpdate );
         $resultString = $resultString .'<div class="media response-info"> <div class="media-left response-text-left">
-						<img src="images/perfectsense80x80.png" class="img-responsive" alt=""></div>
+						<img src="' . $row["picturepath"] .'" class="img-responsive" alt=""></div>
 						<div class="media-body response-text-right">
 							<h4><b>' . $row['name'] . '</b></h4>
 							<p>' . $row['comment'] . '</p>
@@ -39,7 +44,8 @@ if ($result->num_rows > 0) {
 							   <br></br>
 							   <h5>Reply</h5>
 							   <div id = error_label_subcomment></div>
-							   <input type="text" id="sub-comment-name" placeholder="Name" name="myinput" id="myinput"/>
+							   <input type="hidden" id="sub-comment-name" value="' . $_SESSION["user"] . '" />
+							    <input type="hidden" id="sub-comment-picturepath" value="' .$_SESSION["picturepath"]. '"/>
 							   <br></br>
 							   <textarea id="sub-comment-text" placeholder="Your Comment..." maxlength=250 required></textarea>
 							   <input type="hidden" id="commentID" value="'.$row["id"].'"/>
@@ -49,7 +55,7 @@ if ($result->num_rows > 0) {
 							   </div>
 							</div></li>
 							</ul>';
-		$sql = "SELECT id, name, comment, date FROM subcomment WHERE parentCommentID = " . $row["id"] ." ORDER BY date ASC";
+		$sql = "SELECT id, name, comment, picturepath, date FROM subcomment WHERE parentCommentID = " . $row["id"] ." ORDER BY date ASC";
 		$resultSubComment = $conn->query($sql);
 		if ($resultSubComment->num_rows > 0) {
 			 while($rowSubComment = $resultSubComment->fetch_assoc()) {
@@ -57,7 +63,7 @@ if ($result->num_rows > 0) {
 				$submysqldate = date( 'd M, Y g:i:s A', $subphpdate );
 			 	$resultString = $resultString . '<div class="media response-info">
 								<div class="media-left response-text-left">
-										<img src="images/perfectsense80x80.png" class="img-responsive" alt="">
+										<img src="' . $rowSubComment["picturepath"] .'" class="img-responsive" alt="">
 								</div>
 								<div class="media-body response-text-right">
 									<h4><b>' . $rowSubComment['name'] . '</b></h4>
@@ -121,6 +127,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 			data: {commentName: $( "#main-comment-name" ).val(),
 				   sortOrder: sortOrderNumber,
 				   articleID: 1,
+				   picturepath: $( "#main-comment-pic" ).val(),
 				   actualCommentText: $("#main-comment-text").val()},
 			success: function(data){
 				$('#main-comment-name').val('');
@@ -138,7 +145,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 			}
 		});
       }else{
-      	 $('#error_label').html('<label class="error" for="name" id="error">Please provide a name and a comment</label>');
+      	 $('#error_label').html('<label class="error" for="name" id="error">Please provide a comment</label>');
       }
     });
   });
@@ -189,6 +196,7 @@ $(function() {
 			url: 'processSubComments.php', 
 			data: {commentName: $(this).siblings("#sub-comment-name").val(),
 				   commentID: $(this).siblings("#commentID").val(),
+				   picturepath: $(this).siblings("#sub-comment-picturepath").val(),
 				   actualCommentText: $(this).siblings("#sub-comment-text").val()},
 			success: function(data){
 				//$(this).siblings('#sub-comment-name').val('');
@@ -208,7 +216,7 @@ $(function() {
 			}
 		});
       }else{
-      	 $(this).siblings('#error_label_subcomment').html('<label class="error" for="name" id="error">Please provide a name and a comment</label>');
+      	 $(this).siblings('#error_label_subcomment').html('<label class="error" for="name" id="error">Please provide a comment</label>');
       }
     });
   });
@@ -326,7 +334,8 @@ $(function() {
 			 	<div class="coment-form" id="main-comment-section">
 					<h4>Leave your comment for the current blog post</h4>
 						<div id = error_label></div>
-						<input type="text" id="main-comment-name" placeholder="Name" name="name" required>
+						<input type="hidden" id="main-comment-name" value="<?php echo $_SESSION["user"]?>">
+						<input type="hidden" id="main-comment-pic" value="<?php echo $_SESSION["picturepath"]?>">
 						<textarea id="main-comment-text" placeholder="Your Comment..." maxlength=250 required></textarea>
 						<input type="submit" name="submit" id="submit_btn" class="button" value="Submit Comment">
 				</div>	
