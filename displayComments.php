@@ -112,7 +112,7 @@ if ($result->num_rows > 0) {
     	$phpdate = strtotime( $row['date'] );
 		$mysqldate = date( 'd M, Y g:i:s A', $phpdate );
         echo '<div class="media response-info"> <div class="media-left response-text-left">
-						<img src="images/si.png" class="img-responsive" alt=""></div>
+						<img src="images/perfectsense80x80.png" class="img-responsive" alt=""></div>
 						<div class="media-body response-text-right">
 							<h4><b>' . $row['name'] . '</b></h4>
 							<p>' . $row['comment'] . '</p>
@@ -142,7 +142,7 @@ if ($result->num_rows > 0) {
 				$submysqldate = date( 'd M, Y g:i:s A', $subphpdate );
 			 	echo '<div class="media response-info">
 								<div class="media-left response-text-left">
-										<img src="images/si.png" class="img-responsive" alt="">
+										<img src="images/perfectsense80x80.png" class="img-responsive" alt="">
 								</div>
 								<div class="media-body response-text-right">
 									<h4><b>' . $rowSubComment['name'] . '</b></h4>

@@ -11,8 +11,13 @@ if($conn->connect_error){
 }
 
 date_default_timezone_set('EST');
-
-$commentTime = date("Y-m-d H:i:s I");
+$bool = date('I');
+$commentTime;
+if($bool == 1){
+	$commentTime = date("Y-m-d H:i:s");
+}else{
+	$commentTime = date("Y-m-d H:i:s", strtotime('+1 hours'));	
+}
 $articleID = $_POST["articleID"];
 $name = $_POST["commentName"];
 $comment = $_POST["actualCommentText"];

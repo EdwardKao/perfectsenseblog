@@ -1,4 +1,5 @@
 <?php
+session_start();
 $servername = "localhost:3306";
 $username = "root";
 $password = "";
@@ -11,6 +12,7 @@ if($conn->connect_error){
 }
 
 date_default_timezone_set('EST');
+
 $sql = "SELECT id, name, comment, date FROM comments WHERE articleID = 1 ORDER BY date DESC";
 $result = $conn->query($sql);
 $resultString='';
@@ -25,7 +27,7 @@ if ($result->num_rows > 0) {
     	$phpdate = strtotime( $row['date'] );
 		$mysqldate = date( 'd M, Y g:i:s A', $phpdate );
         $resultString = $resultString .'<div class="media response-info"> <div class="media-left response-text-left">
-						<img src="images/si.png" class="img-responsive" alt=""></div>
+						<img src="images/perfectsense80x80.png" class="img-responsive" alt=""></div>
 						<div class="media-body response-text-right">
 							<h4><b>' . $row['name'] . '</b></h4>
 							<p>' . $row['comment'] . '</p>
@@ -55,7 +57,7 @@ if ($result->num_rows > 0) {
 				$submysqldate = date( 'd M, Y g:i:s A', $subphpdate );
 			 	$resultString = $resultString . '<div class="media response-info">
 								<div class="media-left response-text-left">
-										<img src="images/si.png" class="img-responsive" alt="">
+										<img src="images/perfectsense80x80.png" class="img-responsive" alt="">
 								</div>
 								<div class="media-body response-text-right">
 									<h4><b>' . $rowSubComment['name'] . '</b></h4>
@@ -256,9 +258,12 @@ $(function() {
 						<ul class="nav navbar-nav">
 							<li class="active act"><a href="index.php">Home</a></li>
 							<li><a href="about.php">About</a></li>
-							<li><a href="coding.php">Coding</a></li>
-							<li><a href="signup.php">SignUp</a></li>
-							<li><a href="login.php">Login</a></li>
+						<?php if(isset($_SESSION["user"])){
+						echo '<h5> Welcome ' . $_SESSION["user"] . '   (<a href="login.php?logout=true">Logout</a>) </h5>';
+						}else{
+							echo '<li><a href="signup.php">SignUp</a></li>
+							<li><a href="login.php">Login</a></li>';	
+						}?>
 							<!--<li><a href="music.html">Music</a></li>
 							<li><a href="codes.html">Codes</a></li>
 							<li><a href="contact.html">Contact</a></li> -->
@@ -315,7 +320,7 @@ $(function() {
 				   		View = HTML/CSS;
 				   		Controller = PHP
 				   </p>
-			      <p>On Sept 10 <a class="span_link" href="#"><span class="glyphicon glyphicon-comment"></span>0 </a><a class="span_link" href="#"><span class="glyphicon glyphicon-eye-open"></span>0</a></p>
+			      <p>On Sept 10 <!--<a class="span_link" href="#"><span class="glyphicon glyphicon-comment"></span>0 </a><a class="span_link" href="#"><span class="glyphicon glyphicon-eye-open"></span>0</a>--></p>
 				</div>
 			 </div>
 			 	<div class="coment-form" id="main-comment-section">

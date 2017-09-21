@@ -7,7 +7,7 @@ License URL: http://creativecommons.org/licenses/by/3.0/
 <!DOCTYPE HTML>
 <html>
 <head>
-<title>Coding Blog | Home :: w3layouts</title>
+<title>Coding Blog</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="keywords" content="Style Blog Responsive web template, Bootstrap Web Templates, Flat Web Templates, Android Compatible web template, 
@@ -62,7 +62,12 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 						<ul class="nav navbar-nav">
 							<li class="active act"><a href="index.php">Home</a></li>
 							<li><a href="about.php">About</a></li>
-							<li><a href="coding.php">Coding</a></li>
+							<?php if(isset($_SESSION["user"])){
+						echo '<h5> Welcome ' . $_SESSION["user"] . '   (<a href="login.php?logout=true">Logout</a>) </h5>';
+						}else{
+							echo '<li><a href="signup.php">SignUp</a></li>
+							<li><a href="login.php">Login</a></li>';	
+						}?>
 							<!-- <li><a href="features.html">Features</a></li>
 							<li><a href="fashion.html">Fashion</a></li>
 							<li><a href="music.html">Music</a></li>
@@ -114,11 +119,11 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 				<div class="team-grids">
 					<div class="col-md-6 team-grid">
 						<div class="team-grid1">
-							<img src="images/2.jpg" alt=" " class="img-responsive">
-							<div class="p-mask">
-								<p>Devishly Handsome</p>
+							<img src="images/me_pic_340x340.jpg" alt=" " class="img-responsive">
+							<!--<div class="p-mask">
+								<p></p>
 								
-							</div>
+							</div>-->
 						</div>
 						<h5>Edward Kao<span>Software Engineer</span></h5>
 						<ul class="social">
